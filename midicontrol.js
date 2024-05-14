@@ -2,7 +2,7 @@ const CC_CUE = 14;
 const CUE_TIME = 333;
 var CUE_MODE = false; //when true, wait until CC value stops changing to change actual value
 var SKIP_CUE_CCS = [CC_CUE]; //holds CCs we don't want to be affected by Cueing
-var debug = true;
+
 
 class MidiCtrl {
   
@@ -11,9 +11,9 @@ class MidiCtrl {
         this.name = name;
         this.CC = cc;
         this.defaultVal = defV;
-        this.val = this.defaultVal;
-        this.lastVal = this.defaultVal;
-        this.target = this.defaultVal;
+        this.val = 0;
+        this.lastVal = 0;
+        this.target = 0;
         this.ccLo = 0; //low end of CC range
         this.ccHi = 127;//high end of CC range
         this.min = 0; //minimum mapped value
@@ -29,7 +29,9 @@ class MidiCtrl {
         // Override onMIDIMessage callback with custom function
         this.midiInput.onMIDIMessage = this.onMIDIMessage.bind(this);   
         
+        if(this.CC != undefined){
         console.log("Loaded CC" + this.CC + " " + this.name);
+        }
       }
 
 
@@ -37,7 +39,6 @@ class MidiCtrl {
     
       onMIDIMessage(data) {
         var msg = new MIDI_Message(data.data);
-        //console.log(msg.note + " " + msg.velocity);
 
         if(msg.note != this.CC){
           return;
@@ -68,9 +69,7 @@ class MidiCtrl {
         if(this.isBoolean){
           if(msg.velocity > 0){
             this.active = !this.active;
-            if(debug){
               console.log(this.name + " " + (this.active ? "On" : "Off"));
-            }
           }
         }
         else{
@@ -88,9 +87,7 @@ class MidiCtrl {
           this.val = this.target;
         }
 
-        if(debug){
-          console.log(this.name + " " + this.val);
-        }
+        //console.log(this.name + " " + this.val);
 
         //update shader var if applicable
         if(this.varName != '' && shader != null){
@@ -109,6 +106,9 @@ function getCtrl(cc){
 }
 
 function addCtrl(ctrl){
+  ctrl.val = ctrl.defaultVal;
+  ctrl.lastVal = ctrl.defaultVal;
+  ctrl.target = ctrl.defaultVal;
     ctrls[ctrl.CC] = ctrl;
 }
 
